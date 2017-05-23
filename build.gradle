@@ -1,0 +1,38 @@
+apply plugin: 'scala'
+
+//version = '1.0'
+
+task wrapper(type: Wrapper) {
+   gradleVersion = '2.0'
+}
+
+repositories {
+ mavenCentral()
+}
+
+
+dependencies {
+    ext.gatlingVersion = '2.1.7'
+    compile group: 'io.gatling', name: 'gatling-app', version: gatlingVersion
+    compile group: 'io.gatling', name: 'gatling-recorder', version: gatlingVersion
+    compile group: 'io.gatling.highcharts', name: 'gatling-charts-highcharts', version: gatlingVersion
+}
+
+task loadtestGoogleHome(dependsOn: 'compileTestScala') << {
+
+    javaexec {
+        main = 'io.gatling.app.Gatling'
+        classpath = sourceSets.main.output + sourceSets.main.runtimeClasspath
+        args '-sf', sourceSets.main.output,
+                '-bf', sourceSets.main.output.classesDir,
+                '-s', 'versent.api.loadtest.GoogleSimulation',
+                '-rf', 'build/reports/gatling'
+
+        systemProperty 'users',  (project.hasProperty('users')) ? "$users" : ant.fail("Specify number of users. Try passing: -Pusers=XXX")
+        systemProperty 'ramp',  (project.hasProperty('ramp')) ? "$ramp" : ant.fail("Specify ramp rate. Try passing: -Pramp=XXX")
+        systemProperty 'duration',  (project.hasProperty('duration')) ? "$duration" : null
+        systemProperty 'env',  (project.hasProperty('env')) ? "$env" : null
+
+    }
+
+}
